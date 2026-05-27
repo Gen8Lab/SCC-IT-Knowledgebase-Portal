@@ -48,7 +48,28 @@
             <p>Teams, Outlook and OneDrive troubleshooting support.</p>
         </div>
 
+        </section>
+
+    <!-- ========================================
+    FEEDBACK SECTION
+    Allows users to submit feedback to the API.
+    This supports general-purpose coding, API use,
+    storage persistence and monitoring evidence.
+    ========================================= -->
+
+    <section class="feedback">
+        <h2>Send Feedback</h2>
+        <p>Spotted an issue or want an improvement? Tell us.</p>
+
+        <form id="feedbackForm">
+            <textarea id="feedbackMessage" placeholder="Enter your feedback..." required></textarea>
+            <button type="submit">Send Feedback</button>
+        </form>
+
+        <p id="feedbackStatus"></p>
     </section>
+
+    <script src="script.js"></script>
 
 </body>
 </html>
