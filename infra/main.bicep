@@ -29,11 +29,3 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   }
   kind: 'StorageV2'
 }
-// ========================================
-// FEEDBACK TABLE
-// Stores feedback submissions from the API.
-// Provides persistence evidence for AM1.
-// ========================================
-resource feedbackTable 'Microsoft.Storage/storageAccounts/tableServices/tables@2023-01-01' = {
-  name: '${storageAccount.name}/default/FeedbackSubmissions'
-}
