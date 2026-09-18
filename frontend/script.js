@@ -20,7 +20,7 @@ feedbackForm.addEventListener("submit", async (event) => {
     // SEND DATA TO API
     // ========================================
 
-    const response = await fetch("http://localhost:7071/api/feedback", {
+    const response = await fetch("/api/feedback", {
 
         method: "POST",
 
