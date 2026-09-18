@@ -21,7 +21,11 @@ module.exports = async function (context, req) {
     // VALIDATE REQUEST
     // ========================================
 
-    if (!feedback || !feedback.message) {
+   if (
+    !feedback ||
+    typeof feedback.message !== "string" ||
+    feedback.message.trim() === ""
+) {
 
         context.res = {
             status: 400,
@@ -70,7 +74,7 @@ const client = TableClient.fromConnectionString(
 
         rowKey: Date.now().toString(),
 
-        message: feedback.message,
+        message: feedback.message.trim(),
 
         submittedAt: new Date().toISOString()
     };
