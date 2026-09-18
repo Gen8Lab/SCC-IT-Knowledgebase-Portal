@@ -37,15 +37,28 @@ module.exports = async function (context, req) {
     // CONNECT TO AZURE TABLE STORAGE
     // ========================================
 
-    const connectionString =
-        process.env.AzureWebJobsStorage;
+  const connectionString =
+    process.env.FEEDBACK_STORAGE_CONNECTION;
 
-    const tableName = "FeedbackSubmissions";
+if (!connectionString) {
+    context.log.error("FEEDBACK_STORAGE_CONNECTION is missing.");
 
-    const client = TableClient.fromConnectionString(
-        connectionString,
-        tableName
-    );
+    context.res = {
+        status: 500,
+        body: {
+            error: "Storage configuration is missing."
+        }
+    };
+
+    return;
+}
+
+const tableName = "FeedbackSubmissions";
+
+const client = TableClient.fromConnectionString(
+    connectionString,
+    tableName
+);
 
     // ========================================
     // CREATE FEEDBACK RECORD
