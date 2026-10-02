@@ -18,7 +18,23 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-          lfs: false
+          lfs: false   
+            
+      # ========================================
+      # API UNIT TEST QUALITY GATE
+      # Installs the API dependencies and runs
+      # Jest tests before deployment to Azure.
+      # A failed test stops the deployment.
+      # ========================================
+
+      - name: Install API dependencies
+        working-directory: ./api
+        run: npm ci
+
+      - name: Run API unit tests
+        working-directory: ./api
+        run: npm test -- --runInBand
+
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
