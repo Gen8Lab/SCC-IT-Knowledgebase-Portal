@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.43.8.12551",
-      "templateHash": "9675622252888267285"
+      "templateHash": "1934771632172005155"
     }
   },
   "parameters": {
@@ -34,6 +34,51 @@
         "name": "Standard_LRS"
       },
       "kind": "StorageV2"
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/tableServices/tables",
+      "apiVersion": "2023-01-01",
+      "name": "[format('{0}/default/FeedbackSubmissions', format('scckb{0}', uniqueString(resourceGroup().id)))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', format('scckb{0}', uniqueString(resourceGroup().id)))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/staticSites",
+      "apiVersion": "2023-12-01",
+      "name": "scc-kb-portal",
+      "location": "westeurope",
+      "sku": {
+        "name": "Free",
+        "tier": "Free"
+      },
+      "tags": {
+        "hidden-link: /app-insights-resource-id": "[resourceId('Microsoft.Insights/components', 'scc-kb-appinsights')]"
+      },
+      "properties": {
+        "repositoryUrl": "https://github.com/Gen8Lab/SCC-IT-Knowledgebase-Portal",
+        "branch": "main",
+        "provider": "GitHub",
+        "stagingEnvironmentPolicy": "Enabled",
+        "allowConfigFileUpdates": true
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Insights/components', 'scc-kb-appinsights')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/staticSites/config",
+      "apiVersion": "2023-12-01",
+      "name": "[format('{0}/{1}', 'scc-kb-portal', 'appsettings')]",
+      "properties": {
+        "FEEDBACK_STORAGE_CONNECTION": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix={2}', format('scckb{0}', uniqueString(resourceGroup().id)), listKeys(resourceId('Microsoft.Storage/storageAccounts', format('scckb{0}', uniqueString(resourceGroup().id))), '2023-01-01').keys[0].value, environment().suffixes.storage)]",
+        "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('Microsoft.Insights/components', 'scc-kb-appinsights'), '2020-02-02').ConnectionString]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Insights/components', 'scc-kb-appinsights')]",
+        "[resourceId('Microsoft.Web/staticSites', 'scc-kb-portal')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', format('scckb{0}', uniqueString(resourceGroup().id)))]"
+      ]
     }
   ]
 }
