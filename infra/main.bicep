@@ -4,13 +4,14 @@ param location string = resourceGroup().location
 
 // ========================================
 // APPLICATION INSIGHTS
-// Used for monitoring, logging, metrics,
-// availability checks and future dashboard evidence.
+// Provides an Azure monitoring resource
+// linked to the Static Web App.
 // ========================================
 resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   name: 'scc-kb-appinsights'
   location: location
   kind: 'web'
+
   properties: {
     Application_Type: 'web'
   }
@@ -18,17 +19,20 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
 
 // ========================================
 // STORAGE ACCOUNT
-// Used for feedback data storage and future
-// portal-related cloud persistence evidence.
+// Provides persistent cloud storage for
+// feedback submitted through the API.
 // ========================================
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   name: 'scckb${uniqueString(resourceGroup().id)}'
   location: location
+
   sku: {
     name: 'Standard_LRS'
   }
+
   kind: 'StorageV2'
 }
+
 // ========================================
 // FEEDBACK TABLE
 // Stores feedback submissions from the API.
@@ -38,6 +42,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
 resource feedbackTable 'Microsoft.Storage/storageAccounts/tableServices/tables@2023-01-01' = {
   name: '${storageAccount.name}/default/FeedbackSubmissions'
 }
+
 // ========================================
 // STATIC WEB APP
 // Hosts the SCC Knowledgebase frontend and
@@ -53,7 +58,7 @@ resource staticWebApp 'Microsoft.Web/staticSites@2023-12-01' = {
     tier: 'Free'
   }
 
-    tags: {
+  tags: {
     'hidden-link: /app-insights-resource-id': appInsights.id
   }
 
@@ -65,6 +70,7 @@ resource staticWebApp 'Microsoft.Web/staticSites@2023-12-01' = {
     allowConfigFileUpdates: true
   }
 }
+
 // ========================================
 // STATIC WEB APP APPLICATION SETTINGS
 // Configures the managed API with the
@@ -82,6 +88,59 @@ resource staticWebAppSettings 'Microsoft.Web/staticSites/config@2023-12-01' = {
     APPLICATIONINSIGHTS_CONNECTION_STRING: appInsights.properties.ConnectionString
   }
 }
+
+// ========================================
+// FUNCTION ERROR METRIC ALERT
+// Monitors the managed API using the native
+// Azure Static Web Apps FunctionErrors metric.
+//
+// The alert is evaluated every minute and
+// triggers when one or more function errors
+// occur during a five-minute monitoring window.
+//
+// No notification action is currently attached.
+// The rule still provides automated detection
+// and alert-state monitoring in Azure Monitor.
+// ========================================
+resource functionErrorAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = {
+  name: 'scc-kb-function-errors'
+  location: 'global'
+
+  properties: {
+    description: 'Alert when the SCC Knowledgebase managed API records one or more function errors.'
+    severity: 2
+    enabled: true
+    autoMitigate: true
+
+    scopes: [
+      staticWebApp.id
+    ]
+
+    evaluationFrequency: 'PT1M'
+    windowSize: 'PT5M'
+
+    criteria: {
+      'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+
+      allOf: [
+        {
+          criterionType: 'StaticThresholdCriterion'
+          name: 'FunctionErrorsCondition'
+          metricName: 'FunctionErrors'
+          metricNamespace: 'Microsoft.Web/staticSites'
+          timeAggregation: 'Total'
+          operator: 'GreaterThan'
+          threshold: 0
+          dimensions: []
+          skipMetricValidation: false
+        }
+      ]
+    }
+
+    actions: []
+  }
+}
+
 // ========================================
 // DEPLOYMENT OUTPUTS
 // Returns key resource information after an
@@ -92,3 +151,4 @@ output staticWebAppName string = staticWebApp.name
 output staticWebAppHostname string = staticWebApp.properties.defaultHostname
 output storageAccountName string = storageAccount.name
 output applicationInsightsName string = appInsights.name
+output functionErrorAlertName string = functionErrorAlert.name
