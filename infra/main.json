@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.43.8.12551",
-      "templateHash": "1934771632172005155"
+      "templateHash": "14930734210522413196"
     }
   },
   "parameters": {
@@ -80,5 +80,23 @@
         "[resourceId('Microsoft.Storage/storageAccounts', format('scckb{0}', uniqueString(resourceGroup().id)))]"
       ]
     }
-  ]
+  ],
+  "outputs": {
+    "staticWebAppName": {
+      "type": "string",
+      "value": "scc-kb-portal"
+    },
+    "staticWebAppHostname": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Web/staticSites', 'scc-kb-portal'), '2023-12-01').defaultHostname]"
+    },
+    "storageAccountName": {
+      "type": "string",
+      "value": "[format('scckb{0}', uniqueString(resourceGroup().id))]"
+    },
+    "applicationInsightsName": {
+      "type": "string",
+      "value": "scc-kb-appinsights"
+    }
+  }
 }

@@ -82,3 +82,13 @@ resource staticWebAppSettings 'Microsoft.Web/staticSites/config@2023-12-01' = {
     APPLICATIONINSIGHTS_CONNECTION_STRING: appInsights.properties.ConnectionString
   }
 }
+// ========================================
+// DEPLOYMENT OUTPUTS
+// Returns key resource information after an
+// IaC deployment to support verification
+// and repeatable rebuild procedures.
+// ========================================
+output staticWebAppName string = staticWebApp.name
+output staticWebAppHostname string = staticWebApp.properties.defaultHostname
+output storageAccountName string = storageAccount.name
+output applicationInsightsName string = appInsights.name
