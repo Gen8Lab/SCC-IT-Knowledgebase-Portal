@@ -1,5 +1,7 @@
 param(
-    [string]$PortalUrl = "https://brave-sand-02fdec103.5.azurestaticapps.net"
+    [string]$PortalUrl = "",
+    [string]$ResourceGroupName = "rg-scc-kb-dev",
+    [string]$StaticWebAppName = "scc-kb-portal"
 )
 
 $ErrorActionPreference = "Stop"
@@ -36,6 +38,38 @@ function Get-HttpStatusFromException {
     }
 
     return $null
+}
+
+# ------------------------------------------------------------
+# Resolve the current Static Web App hostname when a portal
+# URL has not been supplied by another script.
+# ------------------------------------------------------------
+if ([string]::IsNullOrWhiteSpace($PortalUrl)) {
+    Write-Info "Portal URL not supplied. Discovering the current Static Web App hostname..."
+
+    try {
+        $hostname = (
+            az staticwebapp show `
+                --name $StaticWebAppName `
+                --resource-group $ResourceGroupName `
+                --query "defaultHostname" `
+                --output tsv
+        ).Trim()
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "az staticwebapp show returned exit code $LASTEXITCODE"
+        }
+
+        if ([string]::IsNullOrWhiteSpace($hostname)) {
+            throw "Azure did not return a Static Web App hostname."
+        }
+
+        $PortalUrl = "https://$hostname"
+    }
+    catch {
+        Write-Host "[FAIL] Could not discover the live portal URL: $($_.Exception.Message)" -ForegroundColor Red
+        exit 1
+    }
 }
 
 Write-Host ""
