@@ -12,5 +12,8 @@
   },
   "devDependencies": {
     "jest": "^29.7.0"
+  },
+  "overrides": {
+    "@azure/msal-node": "7.1.1"
   }
 }
